@@ -79,18 +79,19 @@ class Cannon(Building):
         # town_hall = TownHall()
         self.damage = 25
 
+    def attack(self):
+        """
+        Attacks any nearby troop or King
+        """
+        pass
+
 
 class Village:
     def __init__(self):
         """
         Set n and m for village
-
-
-        Grid contains of n*m cells
-        Each cell has a display_character and a buildingID
-
-        display_character is rendered on display
-        and buildingID is the ID of the building to which this cell belongs
+        `grid` contains the character to be rendered at that cell
+        `buildings` contains all not destroyed buildings (including Walls)
         """
         self.n = 40
         self.m = 40

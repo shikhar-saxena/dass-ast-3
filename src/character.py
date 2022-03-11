@@ -1,4 +1,5 @@
 # from grid import Village
+from colorama import Fore, Back, Style
 
 
 class Character:
@@ -23,6 +24,10 @@ class Character:
         pass
 
     def move_up(self, village):
+
+        if self.check_death():
+            return
+
         up = self.position_n - 1
 
         if up >= 0 and village.grid[up, self.position_m] == " ":
@@ -31,6 +36,9 @@ class Character:
             self.place_character(village)
 
     def move_left(self, village):
+        if self.check_death():
+            return
+
         left = self.position_m - 1
 
         if left >= 0 and village.grid[self.position_n, left] == " ":
@@ -39,6 +47,9 @@ class Character:
             self.place_character(village)
 
     def move_down(self, village):
+        if self.check_death():
+            return
+
         down = self.position_n + 1
 
         if down < village.n and village.grid[down, self.position_m] == " ":
@@ -47,6 +58,8 @@ class Character:
             self.place_character(village)
 
     def move_right(self, village):
+        if self.check_death():
+            return
 
         right = self.position_m + 1
 
@@ -56,6 +69,10 @@ class Character:
             self.place_character(village)
 
     def attack(self, village):
+
+        if self.check_death():
+            return
+
         priority = ["T", "C", "H", "W"]
 
         # TODO: priority in attack
@@ -84,6 +101,12 @@ class Character:
             # can only hit one building at one point
             return
 
+    def check_death(self):
+        if self.health <= 0:
+            return True
+        else:
+            return False
+
 
 class King(Character):
     def __init__(self, village):
@@ -109,3 +132,15 @@ class King(Character):
             self.move_down(village)
         elif input_ch == "d" or input_ch == "D":
             self.move_down(village)
+
+    def render_health(self):
+
+        print(Fore.LIGHTRED_EX, end="")
+        for i in range(self.health):
+            print("=", end="")
+        print(f"> {self.health} {Style.RESET_ALL}")
+
+
+# class Barbarian(Character):
+#     def __init__(self, damage, speed, display_character):
+#         super().__init__(damage, speed, display_character)
