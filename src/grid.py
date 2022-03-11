@@ -93,7 +93,7 @@ class Village:
         `grid` contains the character to be rendered at that cell
         `buildings` contains all not destroyed buildings (including Walls)
         """
-        self.n = 40
+        self.n = 38
         self.m = 40
         self.grid = np.array([[" " for _ in range(self.m)] for _ in range(self.n)])
 
@@ -188,17 +188,30 @@ class Village:
 
     def render(self):
 
-        for i in range(self.n):
+        output = "{}{} {} {}"
 
-            for j in range(self.m):
+        for i in range(-1, self.n + 1):
 
-                print(
-                    Fore.LIGHTWHITE_EX
-                    + self.display_health(i, j)
-                    + " "
-                    + self.grid[i, j]
-                    + " "
-                    + Style.RESET_ALL,
-                    end="",
-                )
+            for j in range(-1, self.m + 1):
+
+                if j == -1 or j == self.m:
+                    print(output.format(Back.RED, "", "", Style.RESET_ALL), end="")
+                    continue
+
+                if i == -1 or i == self.n:
+                    print(
+                        output.format(Back.RED, "", " ", Style.RESET_ALL),
+                        end="",
+                    )
+                else:
+                    print(
+                        output.format(
+                            Fore.LIGHTWHITE_EX,
+                            self.display_health(i, j),
+                            self.grid[i, j],
+                            Style.RESET_ALL,
+                        ),
+                        end="",
+                    )
+
             print()
