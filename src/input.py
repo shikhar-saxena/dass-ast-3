@@ -3,7 +3,6 @@ import sys
 import termios
 import tty
 import signal
-import os
 
 
 class Get:
@@ -39,12 +38,10 @@ def input_to(getch, timeout=0.1):
     """Taking input from user."""
     signal.signal(signal.SIGALRM, alarmHandler)
     signal.setitimer(signal.ITIMER_REAL, timeout)
-    # signal.signal(signal.SIGINT, signal.SIG_IGN)
     try:
         text = getch()
         signal.alarm(0)
         return text
     except AlarmException:
         signal.signal(signal.SIGALRM, signal.SIG_IGN)
-        # os.system("clear")
         return None

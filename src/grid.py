@@ -1,3 +1,4 @@
+from src.character import Barbarian
 from colorama import Fore, Back, Style
 import numpy as np
 
@@ -26,6 +27,8 @@ class Building:
             for j in range(position_m, position_m + self.size_m):
                 self.position.append((i, j))
                 grid[i, j] = self.display_character
+
+        self.position = np.array(self.position)
 
         return self
 
@@ -71,19 +74,76 @@ class Cannon(Building):
     def __init__(self):
         """
         Assuming cannon to be of size 2x2
-        Assuming range of cannon to be about 7 tiles
-        Assuming damage value to be 25
+        Assuming range of cannon to be about 6 tiles
+        Assuming damage value to be 10
         """
         super().__init__(2, 2, "C")
-        self.range = 7
-        # town_hall = TownHall()
-        self.damage = 25
+        self.range = 6
+        self.damage = 10
 
-    def attack(self):
+    def attack(self, troops):
         """
         Attacks any nearby troop or King
         """
-        pass
+
+        for troop in troops:
+            if troop.check_death():
+                continue
+
+            (x, y) = troop.get_position()
+
+            if (x - self.position_start_row) ** 2 + (
+                y - self.position_start_column
+            ) ** 2 <= self.range**2:
+                troop.health -= self.damage
+                return
+        return
+
+
+class Spawning_Point:
+    """
+    Three Predefined spawning points at the borders of the village
+
+    (n,m): position around the grid
+    """
+
+    def __init__(self, n, m):
+        self.position_n = n
+        self.position_m = m
+        # key for the spawning point (set using the spawn pts array indices)
+
+    def get_position(self):
+        return (self.position_n, self.position_m)
+
+    def add_troop(self, village):
+        """
+        Add troop to the nearest point on the village
+        for this spawning point
+        """
+
+        # Decide init position
+
+        if self.position_n == -1:
+            i = 0
+            j = self.position_m
+        elif self.position_n == village.n:
+            i = village.n - 1
+            j = self.position_m
+        elif self.position_m == -1:
+            i = self.position_n
+            j = 0
+        else:
+            i = self.position_n
+            j = village.m - 1
+
+        if village.grid[i, j] != " ":
+            return None
+
+        barbarian = Barbarian()
+        barbarian.init_position(i, j)
+        barbarian.place_character(village)
+
+        return barbarian
 
 
 class Village:
@@ -96,6 +156,13 @@ class Village:
         self.n = 38
         self.m = 40
         self.grid = np.array([[" " for _ in range(self.m)] for _ in range(self.n)])
+
+        # Add Spawning points around the village
+        self.spawn_pts = [
+            Spawning_Point(-1, 20),
+            Spawning_Point(17, 40),
+            Spawning_Point(38, 12),
+        ]
 
         # Buildings in the Village
         # Contains positions of the building present
@@ -158,8 +225,25 @@ class Village:
         # For King and Characters
         return None
 
+    def display_barb_health(self, i, j, troops):
+        """Returns appropriate color to be displayed (health of Barbarian)"""
+
+        for troop in troops:
+            if troop.get_position() == (i, j):
+                health_ij = troop.health
+                if health_ij > 50:
+                    return Fore.BLUE
+                elif health_ij > 20:
+                    return Fore.LIGHTBLUE_EX
+                elif health_ij > 0:
+                    return Fore.LIGHTCYAN_EX
+                else:
+                    return Fore.WHITE
+
+        return Style.RESET_ALL
+
     def display_health(self, i, j):
-        """Returns appropriate color to be displayed"""
+        """Returns appropriate color to be displayed (health of building)"""
         building = self.get_building(i, j)
 
         if building is None:
@@ -186,7 +270,17 @@ class Village:
 
             return Back.RESET
 
-    def render(self):
+    def check_spawning_point(self, i, j):
+
+        tup_ij = (i, j)
+
+        for i in range(3):
+            if self.spawn_pts[i].get_position() == tup_ij:
+                return i + 1
+
+        return None
+
+    def render(self, troops):
 
         output = "{}{} {} {}"
 
@@ -194,24 +288,49 @@ class Village:
 
             for j in range(-1, self.m + 1):
 
+                # Display the spawning points
+                val = self.check_spawning_point(i, j)
+
+                if val:
+                    print(output.format(Fore.CYAN, "", val, Style.RESET_ALL), end="")
+                    continue
+
+                # Borders of village
                 if j == -1 or j == self.m:
-                    print(output.format(Back.RED, "", "", Style.RESET_ALL), end="")
+                    print(Fore.RED, "|", Style.RESET_ALL, sep="", end="")
                     continue
 
                 if i == -1 or i == self.n:
                     print(
-                        output.format(Back.RED, "", " ", Style.RESET_ALL),
+                        Fore.RED,
+                        "---",
+                        Style.RESET_ALL,
+                        sep="",
                         end="",
                     )
                 else:
-                    print(
-                        output.format(
-                            Fore.LIGHTWHITE_EX,
-                            self.display_health(i, j),
-                            self.grid[i, j],
-                            Style.RESET_ALL,
-                        ),
-                        end="",
-                    )
+
+                    # Check barbarian health
+                    if self.grid[i, j] == "#":
+                        print(
+                            output.format(
+                                Fore.LIGHTWHITE_EX,
+                                self.display_barb_health(i, j, troops),
+                                self.grid[i, j],
+                                Style.RESET_ALL,
+                            ),
+                            end="",
+                        )
+
+                    else:
+                        print(
+                            output.format(
+                                Fore.LIGHTWHITE_EX,
+                                self.display_health(i, j),
+                                self.grid[i, j],
+                                Style.RESET_ALL,
+                            ),
+                            end="",
+                        )
 
             print()

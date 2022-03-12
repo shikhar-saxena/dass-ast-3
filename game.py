@@ -1,9 +1,9 @@
-from lib2to3.pytree import type_repr
-from tabnanny import check
 from src.character import King
-from src.grid import Village, Wall
+from src.grid import Village, Wall, Cannon
 from src.input import input_to, Get
 import os
+
+# import time
 
 
 class Game:
@@ -15,12 +15,20 @@ class Game:
         self.troops = []
         self.troops.append(self.king)
 
+    # Not destroyed cannons attack the troops
+    def cannon_attack(self):
+
+        for building in self.village.buildings:
+            if type(building) == Cannon:
+                building.attack(self.troops)
+
     def __call__(self):
         while True:
             self.king.render_health()
-            self.village.render()
+            self.village.render(self.troops)
             ch = input_to(Get())
             self.handle_input(ch)
+            self.cannon_attack()
             os.system("clear")
             if self.check_game_victory():
                 print(
@@ -50,38 +58,28 @@ __     _____ ____ _____ ___  ______   __
 
     def handle_input(self, ch):
 
-        # if(ch == 1 or ch == 2 or ch == 3): TODO:
-
-        # switch = {
-        #     # 1: spawn(),
-        #     # 2: spawn(),
-        #     # 3: spawn(),
-        #     # # Add Spells
-        #     "w": "move_up",
-        #     "W": "move_up",
-        #     "a": "move_left",
-        #     "A": "move_left",
-        #     "s": "move_down",
-        #     "S": "move_down",
-        #     "d": "move_right",
-        #     "D": "move_right",
-        # }
-
-        # func_name = switch[ch]
-
-        # king.func_name(village)
-        # king.func_name(village)
-
         if ch == "w" or ch == "W":
+            if self.king.check_death():
+                return
             self.king.move_up(self.village)
         elif ch == "a" or ch == "A":
+            if self.king.check_death():
+                return
             self.king.move_left(self.village)
         elif ch == "s" or ch == "S":
+            if self.king.check_death():
+                return
             self.king.move_down(self.village)
         elif ch == "d" or ch == "D":
+            if self.king.check_death():
+                return
             self.king.move_right(self.village)
+        elif ch == "1" or ch == "2" or ch == "3":
+            barbarian = self.village.spawn_pts[ord(ch) - 49].add_troop(self.village)
 
-        if ch == " ":
+            if barbarian is not None:
+                self.troops.append(barbarian)
+        elif ch == " ":
             self.king.attack(self.village)
 
     def check_game_victory(self):

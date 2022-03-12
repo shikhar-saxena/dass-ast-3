@@ -1,4 +1,3 @@
-# from grid import Village
 from colorama import Fore, Back, Style
 
 
@@ -20,13 +19,10 @@ class Character:
     def clear_character(self, village):
         village.grid[self.position_n, self.position_m] = " "
 
-    def move(self, village):
-        pass
+    # def move(self, village):
+    #     pass
 
     def move_up(self, village):
-
-        if self.check_death():
-            return
 
         up = self.position_n - 1
 
@@ -36,8 +32,6 @@ class Character:
             self.place_character(village)
 
     def move_left(self, village):
-        if self.check_death():
-            return
 
         left = self.position_m - 1
 
@@ -47,8 +41,6 @@ class Character:
             self.place_character(village)
 
     def move_down(self, village):
-        if self.check_death():
-            return
 
         down = self.position_n + 1
 
@@ -58,8 +50,6 @@ class Character:
             self.place_character(village)
 
     def move_right(self, village):
-        if self.check_death():
-            return
 
         right = self.position_m + 1
 
@@ -73,7 +63,7 @@ class Character:
         if self.check_death():
             return
 
-        priority = ["T", "C", "H", "W"]
+        # priority = ["T", "C", "H", "W"]
 
         # TODO: priority in attack
 
@@ -107,14 +97,17 @@ class Character:
         else:
             return False
 
+    def get_position(self):
+        return (self.position_n, self.position_m)
+
 
 class King(Character):
     def __init__(self, village):
         """
-        King's damage assumed to be 20
+        King's damage assumed to be 15
         King's position by default assumed to be (15, 15)
         """
-        super().__init__(20, 10, "K")
+        super().__init__(15, 10, "K")
         self.init_position(15, 1)
         self.place_character(village)
 
@@ -138,9 +131,34 @@ class King(Character):
         print(Fore.LIGHTRED_EX, end="")
         for i in range(self.health):
             print("=", end="")
-        print(f"> {self.health} {Style.RESET_ALL}")
+        if self.health >= 0:
+            print(f"> {self.health} {Style.RESET_ALL}")
+        else:
+            print(f"> 0 {Style.RESET_ALL}")
 
 
-# class Barbarian(Character):
-#     def __init__(self, damage, speed, display_character):
-#         super().__init__(damage, speed, display_character)
+class Barbarian(Character):
+    def __init__(self):
+        super().__init__(damage=7, speed=10, display_character="#")
+
+        # """
+        # Barbarian damage assumed to be 20
+        # King's position by default assumed to be (15, 15)
+        # """
+        # super().__init__(20, 10, "K")
+        # self.init_position(15, 1)
+        # self.place_character(village)
+        # pass
+
+    def move(self, village):
+        if self.check_death():
+            return
+
+        """Get nearest building and move towards that"""
+
+        distance = None
+        min_distance_building = None
+
+        for building in village.buildings:
+            if building.display_character == "W":
+                continue
