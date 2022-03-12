@@ -18,6 +18,8 @@ class Get:
             # ^C handling
             if ch == "\x03":
                 exit(0)
+        except KeyboardInterrupt:
+            exit(0)
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch

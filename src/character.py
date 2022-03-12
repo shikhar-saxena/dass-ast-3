@@ -101,7 +101,7 @@ class King(Character):
     def __init__(self, village):
         """
         King's damage assumed to be 15
-        King's position by default assumed to be (15, 15)
+        King's position by default assumed to be (15, 1)
         """
         super().__init__(15, "K")
         self.init_position(15, 1)
