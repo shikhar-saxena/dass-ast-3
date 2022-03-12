@@ -2,21 +2,21 @@ from colorama import Fore, Back, Style
 
 
 class Character:
-    def __init__(self, damage, speed, display_character):
+    def __init__(self, damage, display_character):
         self.damage = damage
         self.health = 100
-        self.speed = speed
         self.display_character = display_character
-        # self.inputs = inputs
 
     def init_position(self, position_n, position_m):
         self.position_n = position_n
         self.position_m = position_m
 
     def place_character(self, village):
+        # self.temp = village.grid[self.position_n, self.position_m]
         village.grid[self.position_n, self.position_m] = self.display_character
 
     def clear_character(self, village):
+
         village.grid[self.position_n, self.position_m] = " "
 
     # def move(self, village):
@@ -63,10 +63,6 @@ class Character:
         if self.check_death():
             return
 
-        # priority = ["T", "C", "H", "W"]
-
-        # TODO: priority in attack
-
         m = self.position_m
         n = self.position_n
 
@@ -107,24 +103,23 @@ class King(Character):
         King's damage assumed to be 15
         King's position by default assumed to be (15, 15)
         """
-        super().__init__(15, 10, "K")
+        super().__init__(15, "K")
         self.init_position(15, 1)
         self.place_character(village)
 
-    # TODO: character Speed
-    # TODO: Input handling
+    def leviathan_axe(self, village):
+        """
+        Deal damage to all buildings within 5 tile radius
+        """
 
-    # Override
-    def move(self, village, input_ch):
+        i = self.position_n
+        j = self.position_m
 
-        if input_ch == "w" or input_ch == "W":
-            self.move_up(village)
-        elif input_ch == "a" or input_ch == "A":
-            self.move_left(village)
-        elif input_ch == "s" or input_ch == "S":
-            self.move_down(village)
-        elif input_ch == "d" or input_ch == "D":
-            self.move_down(village)
+        for building in village.buildings:
+            for tup in building.position:
+                if (i - tup[0]) ** 2 + (j - tup[1]) ** 2 <= 25:
+                    building.hitpoints -= self.damage
+                    break
 
     def render_health(self):
 
@@ -139,16 +134,86 @@ class King(Character):
 
 class Barbarian(Character):
     def __init__(self):
-        super().__init__(damage=7, speed=10, display_character="#")
+        super().__init__(damage=5, display_character="#")
 
-        # """
-        # Barbarian damage assumed to be 20
-        # King's position by default assumed to be (15, 15)
-        # """
-        # super().__init__(20, 10, "K")
-        # self.init_position(15, 1)
-        # self.place_character(village)
-        # pass
+    """
+    Override parent class behaviour (Polymorphism)
+
+    move methods
+    """
+
+    def attack(self, village, i, j):
+        """
+        Attack at position i, j
+        """
+        building = village.get_building(i, j)
+
+        # Damage this building
+        building.hitpoints -= self.damage
+
+        # can only hit one building at one point
+        return
+
+    def move_up(self, village):
+
+        up = self.position_n - 1
+
+        if up >= 0:
+
+            if (
+                village.grid[up, self.position_m] == " "
+                or village.grid[up, self.position_m] == "#"
+            ):
+                self.clear_character(village)
+                self.position_n = up
+                self.place_character(village)
+            elif village.grid[up, self.position_m] == "W":
+                self.attack(village, up, self.position_m)
+
+    def move_left(self, village):
+
+        left = self.position_m - 1
+
+        if left >= 0:
+            if (
+                village.grid[self.position_n, left] == " "
+                or village.grid[self.position_n, left] == "#"
+            ):
+                self.clear_character(village)
+                self.position_m = left
+                self.place_character(village)
+            elif village.grid[self.position_n, left] == "W":
+                self.attack(village, self.position_n, left)
+
+    def move_down(self, village):
+
+        down = self.position_n + 1
+
+        if down < village.n:
+            if (
+                village.grid[down, self.position_m] == " "
+                or village.grid[down, self.position_m] == "#"
+            ):
+                self.clear_character(village)
+                self.position_n = down
+                self.place_character(village)
+            elif village.grid[down, self.position_m] == "W":
+                self.attack(village, down, self.position_m)
+
+    def move_right(self, village):
+
+        right = self.position_m + 1
+
+        if right < village.m:
+            if (
+                village.grid[self.position_n, right] == " "
+                or village.grid[self.position_n, right] == "#"
+            ):
+                self.clear_character(village)
+                self.position_m = right
+                self.place_character(village)
+            elif village.grid[self.position_n, right] == "W":
+                self.attack(village, self.position_n, right)
 
     def move(self, village):
         if self.check_death():
@@ -156,9 +221,61 @@ class Barbarian(Character):
 
         """Get nearest building and move towards that"""
 
-        distance = None
-        min_distance_building = None
+        min_distance = None
+        min_distance_coordinate = None
+
+        i = self.position_n
+        j = self.position_m
 
         for building in village.buildings:
             if building.display_character == "W":
                 continue
+
+            for position in building.position:
+
+                distance = (i - position[0]) ** 2 + (j - position[1]) ** 2
+
+                if min_distance is None or min_distance > distance:
+                    min_distance = distance
+                    min_distance_coordinate = position
+
+        if min_distance_coordinate is None:
+            return
+
+        # Move towards the min_distance_coordinate
+        if i < min_distance_coordinate[0] - 1:
+            self.move_down(village)
+        elif i > min_distance_coordinate[0] + 1:
+            self.move_up(village)
+        else:
+            # same row
+            if j < min_distance_coordinate[1] - 1:
+                self.move_right(village)
+
+            elif j > min_distance_coordinate[1] + 1:
+                self.move_left(village)
+            else:
+                if (
+                    i == min_distance_coordinate[0] - 1
+                    and j == min_distance_coordinate[1] + 1
+                ):
+                    self.move_left(village)
+                elif (
+                    i == min_distance_coordinate[0] - 1
+                    and j == min_distance_coordinate[1] - 1
+                ):
+                    self.move_right(village)
+                elif (
+                    i == min_distance_coordinate[0] + 1
+                    and j == min_distance_coordinate[1] - 1
+                ):
+                    self.move_right(village)
+                elif (
+                    i == min_distance_coordinate[0] + 1
+                    and j == min_distance_coordinate[1] + 1
+                ):
+                    self.move_left(village)
+                else:
+                    self.attack(
+                        village, min_distance_coordinate[0], min_distance_coordinate[1]
+                    )

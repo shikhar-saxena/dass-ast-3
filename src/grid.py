@@ -174,8 +174,9 @@ class Village:
         # Add Cannon
         self.buildings.append(Cannon().add_building(19, 13, self.grid))
         self.buildings.append(Cannon().add_building(21, 26, self.grid))
+        self.buildings.append(Cannon().add_building(11, 20, self.grid))
 
-        # Add 7 Huts
+        # Add 9 Huts
         huts_position = [
             (15, 15),
             (25, 25),
@@ -184,6 +185,8 @@ class Village:
             (26, 26),
             (15, 20),
             (20, 23),
+            (16, 11),
+            (28, 19),
         ]
 
         for tup in huts_position:
@@ -192,11 +195,11 @@ class Village:
         # Add Walls
         # for wall_position_column in [12, 28]:
 
-        wall_start_row = 10
-        wall_end_row = 28
+        wall_start_row = 6
+        wall_end_row = 33
 
-        wall_start_column = 12
-        wall_end_column = 28
+        wall_start_column = 9
+        wall_end_column = 31
 
         for i in range(wall_start_row, wall_end_row + 1):
             for j in range(wall_start_column, wall_end_column + 1):
@@ -310,12 +313,23 @@ class Village:
                     )
                 else:
 
-                    # Check barbarian health
-                    if self.grid[i, j] == "#":
+                    building_color = self.display_health(i, j)
+
+                    if building_color == Back.RESET:
+
+                        # Check barbarian health
+                        # if self.grid[i, j] == "#":
+                        barb_health_color = self.display_barb_health(i, j, troops)
+                        if barb_health_color != Style.RESET_ALL:
+                            if self.grid[i, j] != "K":
+                                self.grid[i, j] = "#"
+                            else:
+                                barb_health_color = ""
+
                         print(
                             output.format(
                                 Fore.LIGHTWHITE_EX,
-                                self.display_barb_health(i, j, troops),
+                                barb_health_color,
                                 self.grid[i, j],
                                 Style.RESET_ALL,
                             ),
@@ -326,7 +340,7 @@ class Village:
                         print(
                             output.format(
                                 Fore.LIGHTWHITE_EX,
-                                self.display_health(i, j),
+                                building_color,
                                 self.grid[i, j],
                                 Style.RESET_ALL,
                             ),

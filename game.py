@@ -3,8 +3,6 @@ from src.grid import Village, Wall, Cannon
 from src.input import input_to, Get
 import os
 
-# import time
-
 
 class Game:
     def __init__(self):
@@ -22,12 +20,20 @@ class Game:
             if type(building) == Cannon:
                 building.attack(self.troops)
 
+    # Move Troops (barbarians)
+    def move_troops(self):
+        for troop in self.troops:
+            if type(troop) == King:
+                continue
+            troop.move(self.village)
+
     def __call__(self):
         while True:
             self.king.render_health()
             self.village.render(self.troops)
             ch = input_to(Get())
             self.handle_input(ch)
+            self.move_troops()
             self.cannon_attack()
             os.system("clear")
             if self.check_game_victory():
@@ -58,6 +64,8 @@ __     _____ ____ _____ ___  ______   __
 
     def handle_input(self, ch):
 
+        if ch is None:
+            return
         if ch == "w" or ch == "W":
             if self.king.check_death():
                 return
@@ -81,6 +89,10 @@ __     _____ ____ _____ ___  ______   __
                 self.troops.append(barbarian)
         elif ch == " ":
             self.king.attack(self.village)
+        elif ch == "l" or ch == "L":
+            self.king.leviathan_axe(self.village)
+        else:
+            return
 
     def check_game_victory(self):
         for building in self.village.buildings:
