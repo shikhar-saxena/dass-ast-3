@@ -6,6 +6,7 @@ class Character:
         self.damage = damage
         self.health = 100
         self.display_character = display_character
+        self.last_moved_direction = "D"  # By default
 
     def init_position(self, position_n, position_m):
         self.position_n = position_n
@@ -24,6 +25,9 @@ class Character:
 
     def move_up(self, village):
 
+        if self.check_death():
+            return
+
         up = self.position_n - 1
 
         if up >= 0 and village.grid[up, self.position_m] == " ":
@@ -31,7 +35,12 @@ class Character:
             self.position_n = up
             self.place_character(village)
 
+        self.last_moved_direction = "W"
+
     def move_left(self, village):
+
+        if self.check_death():
+            return
 
         left = self.position_m - 1
 
@@ -40,7 +49,12 @@ class Character:
             self.position_m = left
             self.place_character(village)
 
+        self.last_moved_direction = "A"
+
     def move_down(self, village):
+
+        if self.check_death():
+            return
 
         down = self.position_n + 1
 
@@ -49,7 +63,12 @@ class Character:
             self.position_n = down
             self.place_character(village)
 
+        self.last_moved_direction = "S"
+
     def move_right(self, village):
+
+        if self.check_death():
+            return
 
         right = self.position_m + 1
 
@@ -57,6 +76,8 @@ class Character:
             self.clear_character(village)
             self.position_m = right
             self.place_character(village)
+
+        self.last_moved_direction = "D"
 
     def attack(self, village):
 
@@ -96,6 +117,16 @@ class Character:
     def get_position(self):
         return (self.position_n, self.position_m)
 
+    def render_health(self):
+
+        print(Fore.LIGHTRED_EX, end="")
+        for i in range(self.health):
+            print("=", end="")
+        if self.health >= 0:
+            print(f"> {self.health} {Style.RESET_ALL}")
+        else:
+            print(f"> 0 {Style.RESET_ALL}")
+
 
 class King(Character):
     def __init__(self, village):
@@ -121,15 +152,54 @@ class King(Character):
                     building.hitpoints -= self.damage
                     break
 
-    def render_health(self):
 
-        print(Fore.LIGHTRED_EX, end="")
-        for i in range(self.health):
-            print("=", end="")
-        if self.health >= 0:
-            print(f"> {self.health} {Style.RESET_ALL}")
+class Queen(Character):
+    def __init__(self, village):
+        """
+        Queen's damage assumed to be 10 (less than King's)
+        Queen's position by default assumed to be (15, 1)
+        """
+        super().__init__(10, "Q")
+        self.init_position(15, 1)
+        self.place_character(village)
+
+    def attack(self, village):
+        """
+        Override King's attack
+        """
+
+        if self.check_death():
+            return
+
+        direction = self.last_moved_direction
+
+        if direction == "W":
+            x = self.position_n - 8
+            y = self.position_m
+        elif direction == "A":
+            x = self.position_n
+            y = self.position_m - 8
+        elif direction == "S":
+            x = self.position_n + 8
+            y = self.position_m
         else:
-            print(f"> 0 {Style.RESET_ALL}")
+            x = self.position_n
+            y = self.position_m + 8
+
+        buildings_in_range = []
+
+        # Area of effect
+        for i in range(x - 2, x + 3):
+            for j in range(y - 2, y + 3):
+                building = village.get_building(i, j)
+                if building is not None:
+                    buildings_in_range.append(building)
+
+        buildings_in_range = set(buildings_in_range)
+
+        for building in buildings_in_range:
+            # Damage this building
+            building.hitpoints -= self.damage
 
 
 class Barbarian(Character):

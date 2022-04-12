@@ -75,11 +75,11 @@ class Cannon(Building):
         """
         Assuming cannon to be of size 2x2
         Assuming range of cannon to be about 6 tiles
-        Assuming damage value to be 10
+        Assuming damage value to be 7
         """
         super().__init__(2, 2, "C")
         self.range = 6
-        self.damage = 10
+        self.damage = 7
 
     def attack(self, troops):
         """
@@ -115,11 +115,15 @@ class Spawning_Point:
     def get_position(self):
         return (self.position_n, self.position_m)
 
-    def add_troop(self, village):
+    # TODO:
+    def add_troop(self, village, game, troop_to_add=Barbarian):
         """
         Add troop to the nearest point on the village
         for this spawning point
         """
+
+        if game.count_troop(troop_to_add) >= 6:
+            return
 
         # Decide init position
 
@@ -139,7 +143,7 @@ class Spawning_Point:
         if village.grid[i, j] != " ":
             return None
 
-        barbarian = Barbarian()
+        barbarian = troop_to_add()
         barbarian.init_position(i, j)
         barbarian.place_character(village)
 
@@ -217,6 +221,12 @@ class Village:
         """
         Get the building at this position
         """
+        if 0 > position_row or position_row >= self.n:
+            return None
+
+        if 0 > position_column or position_column >= self.m:
+            return None
+
         if self.grid[position_row, position_column] == " ":
             return None
 
@@ -320,8 +330,11 @@ class Village:
                         # Check barbarian health
                         # if self.grid[i, j] == "#":
                         barb_health_color = self.display_barb_health(i, j, troops)
+                        # if barb_health_color == Fore.WHITE:
+                        #     self.grid[i, j] = " "
+
                         if barb_health_color != Style.RESET_ALL:
-                            if self.grid[i, j] != "K":
+                            if self.grid[i, j] != "K" and self.grid[i, j] != "Q":
                                 self.grid[i, j] = "#"
                             else:
                                 barb_health_color = ""

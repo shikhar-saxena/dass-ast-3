@@ -1,4 +1,4 @@
-from src.character import King
+from src.character import King, Queen
 from src.grid import Village, Wall, Cannon
 from src.input import input_to, Get
 import os
@@ -9,9 +9,47 @@ class Game:
         """`troops` keeps track of King and all troops (alive/dead)"""
 
         self.village = Village()
-        self.king = King(self.village)
+
+        print("Choose Character")
+
+        print(
+            """
+█▀▀ █░█ █▀█ █▀█ █▀ █▀▀   █▀▀ █░█ ▄▀█ █▀█ ▄▀█ █▀▀ ▀█▀ █▀▀ █▀█
+█▄▄ █▀█ █▄█ █▄█ ▄█ ██▄   █▄▄ █▀█ █▀█ █▀▄ █▀█ █▄▄ ░█░ ██▄ █▀▄
+"""
+        )
+
+        print()
+        print(
+            """
+█▀█ ▀   █▄▀ █ █▄░█ █▀▀
+█▄█ ▄   █░█ █ █░▀█ █▄█
+        """
+        )
+        print()
+        print(
+            """
+▄█ ▀   █▀█ █░█ █▀▀ █▀▀ █▄░█
+░█ ▄   ▀▀█ █▄█ ██▄ ██▄ █░▀█
+        """
+        )
+
+        while True:
+            ch = input_to(Get())
+
+            if not ch:
+                continue
+
+            if ch == "0":
+                self.playable_character = King(self.village)
+                break
+            elif ch == "1":
+                self.playable_character = Queen(self.village)
+                break
+
         self.troops = []
-        self.troops.append(self.king)
+        self.troops.append(self.playable_character)
+        self.choice = ch
 
     # Not destroyed cannons attack the troops
     def cannon_attack(self):
@@ -23,13 +61,20 @@ class Game:
     # Move Troops (barbarians)
     def move_troops(self):
         for troop in self.troops:
-            if type(troop) == King:
+            if type(troop) == King or type(troop) == Queen:
                 continue
             troop.move(self.village)
 
+    def count_troop(self, troop_type):
+        count = 0
+        for troop in self.troops:
+            if type(troop) == troop_type:
+                count += 1
+        return count
+
     def __call__(self):
         while True:
-            self.king.render_health()
+            self.playable_character.render_health()
             self.village.render(self.troops)
             ch = input_to(Get())
             self.handle_input(ch)
@@ -67,30 +112,24 @@ __     _____ ____ _____ ___  ______   __
         if ch is None:
             return
         if ch == "w" or ch == "W":
-            if self.king.check_death():
-                return
-            self.king.move_up(self.village)
+            self.playable_character.move_up(self.village)
         elif ch == "a" or ch == "A":
-            if self.king.check_death():
-                return
-            self.king.move_left(self.village)
+            self.playable_character.move_left(self.village)
         elif ch == "s" or ch == "S":
-            if self.king.check_death():
-                return
-            self.king.move_down(self.village)
+            self.playable_character.move_down(self.village)
         elif ch == "d" or ch == "D":
-            if self.king.check_death():
-                return
-            self.king.move_right(self.village)
+            self.playable_character.move_right(self.village)
         elif ch == "1" or ch == "2" or ch == "3":
-            barbarian = self.village.spawn_pts[ord(ch) - 49].add_troop(self.village)
+            barbarian = self.village.spawn_pts[ord(ch) - 49].add_troop(
+                self.village, self
+            )
 
             if barbarian is not None:
                 self.troops.append(barbarian)
         elif ch == " ":
-            self.king.attack(self.village)
-        elif ch == "l" or ch == "L":
-            self.king.leviathan_axe(self.village)
+            self.playable_character.attack(self.village)
+        elif (ch == "l" or ch == "L") and self.choice == "0":
+            self.playable_character.leviathan_axe(self.village)
         else:
             return
 
