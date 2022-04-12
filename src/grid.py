@@ -200,7 +200,7 @@ class Spawning_Point:
 
 
 class Village:
-    def __init__(self):
+    def __init__(self, level_no):
         """
         Set n and m for village
         `grid` contains the character to be rendered at that cell
@@ -233,6 +233,15 @@ class Village:
         self.buildings.append(WizardTower().add_building(11, 13, self.grid))
         self.buildings.append(WizardTower().add_building(25, 17, self.grid))
         self.buildings.append(WizardTower().add_building(23, 23, self.grid))
+
+        # Add more defensive buildings (depending on level)
+        if level_no >= 2:
+            self.buildings.append(Cannon().add_building(17, 17, self.grid))
+            self.buildings.append(WizardTower().add_building(15, 27, self.grid))
+
+        if level_no == 3:
+            self.buildings.append(Cannon().add_building(25, 12, self.grid))
+            self.buildings.append(WizardTower().add_building(31, 12, self.grid))
 
         # Add 9 Huts
         huts_position = [

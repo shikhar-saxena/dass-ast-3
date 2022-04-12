@@ -7,6 +7,7 @@ class Character:
         self.health = 100
         self.display_character = display_character
         self.last_moved_direction = "D"  # By default
+        self.movement_speed = 1
 
     def init_position(self, position_n, position_m):
         self.position_n = position_n
@@ -245,6 +246,7 @@ class Barbarian(Character):
                 village.grid[up, self.position_m] == " "
                 or village.grid[up, self.position_m] == "#"
                 or village.grid[up, self.position_m] == "A"
+                or village.grid[up, self.position_m] == "B"
             ):
                 self.clear_character(village)
                 self.position_n = up
@@ -261,6 +263,7 @@ class Barbarian(Character):
                 village.grid[self.position_n, left] == " "
                 or village.grid[self.position_n, left] == "#"
                 or village.grid[self.position_n, left] == "A"
+                or village.grid[self.position_n, left] == "B"
             ):
                 self.clear_character(village)
                 self.position_m = left
@@ -277,6 +280,7 @@ class Barbarian(Character):
                 village.grid[down, self.position_m] == " "
                 or village.grid[down, self.position_m] == "#"
                 or village.grid[down, self.position_m] == "A"
+                or village.grid[down, self.position_m] == "B"
             ):
                 self.clear_character(village)
                 self.position_n = down
@@ -293,6 +297,7 @@ class Barbarian(Character):
                 village.grid[self.position_n, right] == " "
                 or village.grid[self.position_n, right] == "#"
                 or village.grid[self.position_n, right] == "A"
+                or village.grid[self.position_n, right] == "B"
             ):
                 self.clear_character(village)
                 self.position_m = right
@@ -521,6 +526,8 @@ class Balloon(Barbarian):
         # For other buildings
         min_distance_others = None
         min_distance_coordinate_others = None
+
+        min_distance_coordinate = None
 
         i = self.position_n
         j = self.position_m
