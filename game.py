@@ -1,4 +1,4 @@
-from src.character import King, Queen
+from src.character import King, Queen, Barbarian, Archer
 from src.grid import Village, Wall, Cannon
 from src.input import input_to, Get
 import os
@@ -72,6 +72,13 @@ class Game:
                 count += 1
         return count
 
+    def reset_attacks_troops(self):
+        """Increment counter (no of attacks) for the troops present (after each timestamp)"""
+        for troop in self.troops:
+            if type(troop) == King or type(troop) == Queen:
+                continue
+            troop.reset_counter()
+
     def __call__(self):
         while True:
             self.playable_character.render_health()
@@ -81,6 +88,7 @@ class Game:
             self.move_troops()
             self.cannon_attack()
             os.system("clear")
+            self.reset_attacks_troops()
             if self.check_game_victory():
                 print(
                     """
@@ -121,11 +129,19 @@ __     _____ ____ _____ ___  ______   __
             self.playable_character.move_right(self.village)
         elif ch == "1" or ch == "2" or ch == "3":
             barbarian = self.village.spawn_pts[ord(ch) - 49].add_troop(
-                self.village, self
+                self.village, self, Barbarian
             )
 
             if barbarian is not None:
                 self.troops.append(barbarian)
+        elif ch == "4" or ch == "5" or ch == "6":
+            archer = self.village.spawn_pts[ord(ch) - 52].add_troop(
+                self.village, self, Archer
+            )
+
+            if archer is not None:
+                self.troops.append(archer)
+        # TODO:
         elif ch == " ":
             self.playable_character.attack(self.village)
         elif (ch == "l" or ch == "L") and self.choice == "0":

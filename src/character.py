@@ -203,8 +203,13 @@ class Queen(Character):
 
 
 class Barbarian(Character):
-    def __init__(self):
-        super().__init__(damage=5, display_character="#")
+    def __init__(self, damage=5, display_character="#"):
+        super().__init__(damage, display_character)
+        self.counter = 1  # Number of attacks per timestamp
+        self.movement_speed = 1
+
+    def reset_counter(self):
+        self.counter = 1
 
     """
     Override parent class behaviour (Polymorphism)
@@ -216,12 +221,18 @@ class Barbarian(Character):
         """
         Attack at position i, j
         """
+        if self.counter == 0:
+            # No more attacks possible in this timestamp
+            return
+
+        # else decrement counter
+        self.counter -= 1
+
         building = village.get_building(i, j)
 
         # Damage this building
         building.hitpoints -= self.damage
 
-        # can only hit one building at one point
         return
 
     def move_up(self, village):
@@ -233,6 +244,7 @@ class Barbarian(Character):
             if (
                 village.grid[up, self.position_m] == " "
                 or village.grid[up, self.position_m] == "#"
+                or village.grid[up, self.position_m] == "A"
             ):
                 self.clear_character(village)
                 self.position_n = up
@@ -248,6 +260,7 @@ class Barbarian(Character):
             if (
                 village.grid[self.position_n, left] == " "
                 or village.grid[self.position_n, left] == "#"
+                or village.grid[self.position_n, left] == "A"
             ):
                 self.clear_character(village)
                 self.position_m = left
@@ -263,6 +276,7 @@ class Barbarian(Character):
             if (
                 village.grid[down, self.position_m] == " "
                 or village.grid[down, self.position_m] == "#"
+                or village.grid[down, self.position_m] == "A"
             ):
                 self.clear_character(village)
                 self.position_n = down
@@ -278,6 +292,7 @@ class Barbarian(Character):
             if (
                 village.grid[self.position_n, right] == " "
                 or village.grid[self.position_n, right] == "#"
+                or village.grid[self.position_n, right] == "A"
             ):
                 self.clear_character(village)
                 self.position_m = right
@@ -285,11 +300,8 @@ class Barbarian(Character):
             elif village.grid[self.position_n, right] == "W":
                 self.attack(village, self.position_n, right)
 
-    def move(self, village):
-        if self.check_death():
-            return
-
-        """Get nearest building and move towards that"""
+    def get_nearest_building(self, village):
+        """Return current and nearest building coordinates"""
 
         min_distance = None
         min_distance_coordinate = None
@@ -309,16 +321,16 @@ class Barbarian(Character):
                     min_distance = distance
                     min_distance_coordinate = position
 
-        if min_distance_coordinate is None:
-            return
+        return i, j, min_distance_coordinate
 
-        # Move towards the min_distance_coordinate
+    def move_towards_nearest_building(self, village, i, j, min_distance_coordinate):
+        """Move towards the min_distance_coordinate"""
+
         if i < min_distance_coordinate[0] - 1:
             self.move_down(village)
         elif i > min_distance_coordinate[0] + 1:
             self.move_up(village)
         else:
-            # same row
             if j < min_distance_coordinate[1] - 1:
                 self.move_right(village)
 
@@ -349,3 +361,49 @@ class Barbarian(Character):
                     self.attack(
                         village, min_distance_coordinate[0], min_distance_coordinate[1]
                     )
+
+    def move_once(self, village):
+        if self.check_death():
+            return
+
+        i, j, min_distance_coordinate = self.get_nearest_building(village)
+
+        if min_distance_coordinate is None:
+            return
+
+        self.move_towards_nearest_building(village, i, j, min_distance_coordinate)
+
+    def move(self, village):
+        for _ in range(self.movement_speed):
+            self.move_once(village)
+
+
+class Archer(Barbarian):
+    def __init__(self):
+        super().__init__(damage=2.5, display_character="A")
+        self.health = 50
+        self.movement_speed = 2
+        self.range = 8
+
+    """
+    Override move_once of barbarian
+    """
+
+    def move_once(self, village):
+        if self.check_death():
+            return
+
+        i, j, min_distance_coordinate = self.get_nearest_building(village)
+
+        if min_distance_coordinate is None:
+            return
+
+        distance = (i - min_distance_coordinate[0]) ** 2 + (
+            j - min_distance_coordinate[1]
+        ) ** 2
+
+        if distance <= self.range**2:
+            # Attack
+            self.attack(village, min_distance_coordinate[0], min_distance_coordinate[1])
+        else:
+            self.move_towards_nearest_building(village, i, j, min_distance_coordinate)

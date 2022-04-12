@@ -1,4 +1,4 @@
-from src.character import Barbarian
+from src.character import Barbarian, Archer, King, Queen
 from colorama import Fore, Back, Style
 import numpy as np
 
@@ -115,15 +115,19 @@ class Spawning_Point:
     def get_position(self):
         return (self.position_n, self.position_m)
 
-    # TODO:
     def add_troop(self, village, game, troop_to_add=Barbarian):
         """
         Add troop to the nearest point on the village
         for this spawning point
         """
 
-        if game.count_troop(troop_to_add) >= 6:
+        if troop_to_add == Barbarian and game.count_troop(troop_to_add) == 6:
             return
+
+        if troop_to_add == Archer and game.count_troop(troop_to_add) == 3:
+            return
+
+        # TODO:
 
         # Decide init position
 
@@ -140,14 +144,19 @@ class Spawning_Point:
             i = self.position_n
             j = village.m - 1
 
-        if village.grid[i, j] != " ":
+        if (
+            village.grid[i, j] != " "
+            and village.grid[i, j] != "#"
+            and village.grid[i, j] != "A"
+        ):
+            # TODO:
             return None
 
-        barbarian = troop_to_add()
-        barbarian.init_position(i, j)
-        barbarian.place_character(village)
+        new_troop = troop_to_add()
+        new_troop.init_position(i, j)
+        new_troop.place_character(village)
 
-        return barbarian
+        return new_troop
 
 
 class Village:
@@ -238,22 +247,22 @@ class Village:
         # For King and Characters
         return None
 
-    def display_barb_health(self, i, j, troops):
-        """Returns appropriate color to be displayed (health of Barbarian)"""
+    def display_troop_health(self, i, j, troops):
+        """Returns appropriate color to be displayed (health of Troop) along with the troop object"""
 
         for troop in troops:
             if troop.get_position() == (i, j):
                 health_ij = troop.health
                 if health_ij > 50:
-                    return Fore.BLUE
+                    return Fore.BLUE, troop
                 elif health_ij > 20:
-                    return Fore.LIGHTBLUE_EX
+                    return Fore.LIGHTBLUE_EX, troop
                 elif health_ij > 0:
-                    return Fore.LIGHTCYAN_EX
+                    return Fore.LIGHTCYAN_EX, troop
                 else:
-                    return Fore.WHITE
+                    return Fore.WHITE, troop
 
-        return Style.RESET_ALL
+        return Style.RESET_ALL, None
 
     def display_health(self, i, j):
         """Returns appropriate color to be displayed (health of building)"""
@@ -329,20 +338,22 @@ class Village:
 
                         # Check barbarian health
                         # if self.grid[i, j] == "#":
-                        barb_health_color = self.display_barb_health(i, j, troops)
-                        # if barb_health_color == Fore.WHITE:
-                        #     self.grid[i, j] = " "
+                        troop_health_color, troop = self.display_troop_health(
+                            i, j, troops
+                        )
+                        if troop_health_color == Fore.WHITE:
+                            self.grid[i, j] = " "
 
-                        if barb_health_color != Style.RESET_ALL:
-                            if self.grid[i, j] != "K" and self.grid[i, j] != "Q":
-                                self.grid[i, j] = "#"
+                        elif troop_health_color != Style.RESET_ALL:
+                            if type(troop) != King and type(troop) != Queen:
+                                self.grid[i, j] = troop.display_character
                             else:
-                                barb_health_color = ""
+                                troop_health_color = ""
 
                         print(
                             output.format(
                                 Fore.LIGHTWHITE_EX,
-                                barb_health_color,
+                                troop_health_color,
                                 self.grid[i, j],
                                 Style.RESET_ALL,
                             ),
