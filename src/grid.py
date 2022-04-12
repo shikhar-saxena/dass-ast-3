@@ -307,6 +307,10 @@ class Village:
         for troop in troops:
             if troop.get_position() == (i, j):
                 health_ij = troop.health
+
+                if type(troop) == Archer:
+                    health_ij = health_ij * 2  # taking out of 100 %
+
                 if health_ij > 50:
                     return Fore.BLUE, troop
                 elif health_ij > 20:
