@@ -531,7 +531,7 @@ class Balloon(Barbarian):
 
             def_flag = False
 
-            if building.display_character == "C":  # TODO:
+            if building.display_character == "C" or building.display_character == "Z":
                 def_flag = True
 
             for position in building.position:

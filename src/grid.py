@@ -103,6 +103,42 @@ class Cannon(Building):
         return
 
 
+class WizardTower(Building):
+    def __init__(self):
+        """
+        Assuming wizard tower to be of size 1x1
+        Range and damage same as cannon
+        """
+        super().__init__(1, 1, "Z")
+        self.range = 6
+        self.damage = 7
+
+    def attack(self, troops):
+        """
+        Attacks any nearby troop or King (except balloon)
+        """
+
+        for troop in troops:
+            if troop.check_death():
+                continue
+
+            (x, y) = troop.get_position()
+
+            if (x - self.position_start_row) ** 2 + (
+                y - self.position_start_column
+            ) ** 2 <= self.range**2:
+
+                # Get AoE troops
+                for another_troop in troops:
+                    (x_a, y_a) = another_troop.get_position()
+
+                    if x_a >= x - 1 and x_a <= x + 1 and y_a >= y - 1 and y_a <= y + 1:
+                        another_troop.health -= self.damage
+
+                return
+        return
+
+
 class Spawning_Point:
     """
     Three Predefined spawning points at the borders of the village
@@ -192,6 +228,11 @@ class Village:
         self.buildings.append(Cannon().add_building(19, 13, self.grid))
         self.buildings.append(Cannon().add_building(21, 26, self.grid))
         self.buildings.append(Cannon().add_building(11, 20, self.grid))
+
+        # Add Wizard Tower
+        self.buildings.append(WizardTower().add_building(11, 13, self.grid))
+        self.buildings.append(WizardTower().add_building(25, 17, self.grid))
+        self.buildings.append(WizardTower().add_building(23, 23, self.grid))
 
         # Add 9 Huts
         huts_position = [

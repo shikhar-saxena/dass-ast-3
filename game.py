@@ -1,5 +1,5 @@
 from src.character import Balloon, King, Queen, Barbarian, Archer
-from src.grid import Village, Wall, Cannon
+from src.grid import Village, Wall, Cannon, WizardTower
 from src.input import input_to, Get
 import os
 
@@ -58,6 +58,13 @@ class Game:
             if type(building) == Cannon:
                 building.attack(self.troops)
 
+    # Not destroyed wizards attack the troops
+    def wizard_attack(self):
+
+        for building in self.village.buildings:
+            if type(building) == WizardTower:
+                building.attack(self.troops)
+
     # Move Troops (barbarians)
     def move_troops(self):
         for troop in self.troops:
@@ -87,6 +94,7 @@ class Game:
             self.handle_input(ch)
             self.move_troops()
             self.cannon_attack()
+            self.wizard_attack()
             os.system("clear")
             self.reset_attacks_troops()
             if self.check_game_victory():
