@@ -1,4 +1,4 @@
-from src.character import King, Queen, Barbarian, Archer
+from src.character import Balloon, King, Queen, Barbarian, Archer
 from src.grid import Village, Wall, Cannon
 from src.input import input_to, Get
 import os
@@ -141,7 +141,13 @@ __     _____ ____ _____ ___  ______   __
 
             if archer is not None:
                 self.troops.append(archer)
-        # TODO:
+        elif ch == "7" or ch == "8" or ch == "9":
+            balloon = self.village.spawn_pts[ord(ch) - 55].add_troop(
+                self.village, self, Balloon
+            )
+
+            if balloon is not None:
+                self.troops.append(balloon)
         elif ch == " ":
             self.playable_character.attack(self.village)
         elif (ch == "l" or ch == "L") and self.choice == "0":

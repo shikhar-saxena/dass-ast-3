@@ -407,3 +407,150 @@ class Archer(Barbarian):
             self.attack(village, min_distance_coordinate[0], min_distance_coordinate[1])
         else:
             self.move_towards_nearest_building(village, i, j, min_distance_coordinate)
+
+
+class Balloon(Barbarian):
+    def __init__(self):
+        super().__init__(damage=10, display_character="B")
+        self.health = 100
+        self.movement_speed = 2
+        self.last_position_char = None
+
+    """
+    Override move functions of barbarian
+    """
+
+    def move_up(self, village):
+
+        up = self.position_n - 1
+
+        if up >= 0:
+            if self.last_position_char is not None:
+                if (
+                    self.last_position_char != "B"
+                    and self.last_position_char != "#"
+                    and self.last_position_char != "A"
+                ):
+                    village.grid[
+                        self.position_n, self.position_m
+                    ] = self.last_position_char
+            else:
+                self.clear_character(village)
+
+            self.last_position_char = village.grid[up, self.position_m]
+
+            self.position_n = up
+            self.place_character(village)
+
+    def move_left(self, village):
+
+        left = self.position_m - 1
+
+        if left >= 0:
+
+            if self.last_position_char is not None:
+                if (
+                    self.last_position_char != "B"
+                    and self.last_position_char != "#"
+                    and self.last_position_char != "A"
+                ):
+                    village.grid[
+                        self.position_n, self.position_m
+                    ] = self.last_position_char
+            else:
+                self.clear_character(village)
+
+            self.last_position_char = village.grid[self.position_n, left]
+
+            self.position_m = left
+            self.place_character(village)
+
+    def move_down(self, village):
+
+        down = self.position_n + 1
+
+        if down < village.n:
+
+            if self.last_position_char is not None:
+                if (
+                    self.last_position_char != "B"
+                    and self.last_position_char != "#"
+                    and self.last_position_char != "A"
+                ):
+                    village.grid[
+                        self.position_n, self.position_m
+                    ] = self.last_position_char
+            else:
+                self.clear_character(village)
+
+            self.last_position_char = village.grid[down, self.position_m]
+
+            self.position_n = down
+            self.place_character(village)
+
+    def move_right(self, village):
+
+        right = self.position_m + 1
+
+        if right < village.m:
+
+            if self.last_position_char is not None:
+                if (
+                    self.last_position_char != "B"
+                    and self.last_position_char != "#"
+                    and self.last_position_char != "A"
+                ):
+                    village.grid[
+                        self.position_n, self.position_m
+                    ] = self.last_position_char
+            else:
+                self.clear_character(village)
+
+            self.last_position_char = village.grid[self.position_n, right]
+
+            self.position_m = right
+            self.place_character(village)
+
+    def get_nearest_building(self, village):
+        """Return current and nearest building coordinates (specific for balloon)"""
+
+        # For defensive buildings
+        min_distance_def = None
+        min_distance_coordinate_def = None
+
+        # For other buildings
+        min_distance_others = None
+        min_distance_coordinate_others = None
+
+        i = self.position_n
+        j = self.position_m
+
+        for building in village.buildings:
+            if building.display_character == "W":
+                continue
+
+            def_flag = False
+
+            if building.display_character == "C":  # TODO:
+                def_flag = True
+
+            for position in building.position:
+
+                distance = (i - position[0]) ** 2 + (j - position[1]) ** 2
+
+                if def_flag:
+
+                    if min_distance_def is None or min_distance_def > distance:
+                        min_distance_def = distance
+                        min_distance_coordinate_def = position
+
+                elif min_distance_others is None or min_distance_others > distance:
+                    min_distance_others = distance
+                    min_distance_coordinate_others = position
+
+        if min_distance_def is not None:
+            min_distance_coordinate = min_distance_coordinate_def
+        elif min_distance_others is not None:
+            min_distance_coordinate = min_distance_coordinate_others
+
+        return i, j, min_distance_coordinate

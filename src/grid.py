@@ -1,4 +1,4 @@
-from src.character import Barbarian, Archer, King, Queen
+from src.character import Balloon, Barbarian, Archer, King, Queen
 from colorama import Fore, Back, Style
 import numpy as np
 
@@ -73,21 +73,24 @@ class Wall(Building):
 class Cannon(Building):
     def __init__(self):
         """
-        Assuming cannon to be of size 2x2
+        Assuming cannon to be of size 1x1
         Assuming range of cannon to be about 6 tiles
         Assuming damage value to be 7
         """
-        super().__init__(2, 2, "C")
+        super().__init__(1, 1, "C")
         self.range = 6
         self.damage = 7
 
     def attack(self, troops):
         """
-        Attacks any nearby troop or King
+        Attacks any nearby troop or King (except balloon)
         """
 
         for troop in troops:
             if troop.check_death():
+                continue
+
+            if troop.display_character == "B":
                 continue
 
             (x, y) = troop.get_position()
@@ -127,7 +130,8 @@ class Spawning_Point:
         if troop_to_add == Archer and game.count_troop(troop_to_add) == 3:
             return
 
-        # TODO:
+        if troop_to_add == Balloon and game.count_troop(troop_to_add) == 3:
+            return
 
         # Decide init position
 
@@ -145,11 +149,11 @@ class Spawning_Point:
             j = village.m - 1
 
         if (
-            village.grid[i, j] != " "
+            troop_to_add != Balloon
+            and village.grid[i, j] != " "
             and village.grid[i, j] != "#"
             and village.grid[i, j] != "A"
         ):
-            # TODO:
             return None
 
         new_troop = troop_to_add()
@@ -336,15 +340,11 @@ class Village:
 
                     if building_color == Back.RESET:
 
-                        # Check barbarian health
-                        # if self.grid[i, j] == "#":
                         troop_health_color, troop = self.display_troop_health(
                             i, j, troops
                         )
-                        if troop_health_color == Fore.WHITE:
-                            self.grid[i, j] = " "
 
-                        elif troop_health_color != Style.RESET_ALL:
+                        if troop_health_color != Style.RESET_ALL:
                             if type(troop) != King and type(troop) != Queen:
                                 self.grid[i, j] = troop.display_character
                             else:
